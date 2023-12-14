@@ -1,9 +1,9 @@
 export const testCourseData =
 [
     {
-        title : "Introduction to Computer Science",
+        title : "Introduction to Programming",
         number: "312",
-        department: "CS",
+        department: "C S",
         description:  "Introduction to computer science and programming. Problem solving using abstraction and decomposition. Introduction to object-oriented programming. Introduction to algorithms and data structures. Introduction to software engineering. Social and ethical issues in computing. The programming language used will be Python.",
         prerequisites: "CS 311 is required"
     }
