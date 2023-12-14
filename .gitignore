@@ -1,0 +1,26 @@
+
+# dependencies
+/node_modules
+
+# hidden files
+.*
+!.gitignore
+
+# testing
+/coverage
+
+# build
+/dist
+
+#python
+/venv
+
+# etc
+.DS_Store
+.env.local
+.idea
+
+# compiled
+utils/reload/*.js
+utils/reload/injections/*.js
+public/manifest.json
