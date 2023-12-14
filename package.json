@@ -7,7 +7,6 @@
     "type": "git",
     "url": "https://github.com/Kelach/UT-Course-Finder.git"
   },
-
   "scripts": {
     "build": "tsc --noEmit && vite build",
     "build:firefox": "tsc --noEmit && cross-env __FIREFOX__=true vite build",
@@ -30,6 +29,7 @@
     "@emotion/styled": "^11.11.0",
     "@mantine/core": "^7.3.1",
     "@mantine/hooks": "^7.3.1",
+    "@mui/icons-material": "^5.15.0",
     "@mui/material": "^5.15.0",
     "@mui/x-charts": "^6.18.3",
     "construct-style-sheets-polyfill": "3.1.0",
