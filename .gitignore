@@ -1,6 +1,7 @@
 
 # dependencies
 /node_modules
+/crawler
 
 # hidden files
 .*
