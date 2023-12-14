@@ -5,11 +5,11 @@ import { useEffect } from 'react';
 
 function CourseOption(course: CourseProps) {
   return (
-    <Group>
-      <Text fz={20} fw={600}>{course.department}</Text>
+    <Group wrap={"nowrap"} preventGrowOverflow={true}>
+      <Text fz={18} fw={600}>{course.department}</Text>
       <div>
         <Text fz={"sm"}>{course.number}</Text>
-        <Text fz={15}>{course.title}</Text>
+        <Text truncate={"end"} fz={15}>{course.title}</Text>
       </div>
     </Group>
   )
@@ -57,9 +57,12 @@ export default function SearchBar({courseData, setCourse} : {courseData : Course
       store={combobox}
       withinPortal={false}
       onOptionSubmit={onOptionSubmitHandler}
-    >
+      >
       <Combobox.Target>
         <InputBase
+        size='md'
+        w={"50vw"}
+      radius={"xl"}
           // rightSection={<Combobox.Search />}
           value={search}
           onChange={(event) => {
