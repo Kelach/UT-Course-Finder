@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import withSuspense from '@src/shared/hoc/withSuspense';
 import withErrorBoundary from '@src/shared/hoc/withErrorBoundary';
-import { Title, Text, Paper, Stack, Transition, Group, Collapse, Button } from "@mantine/core";
+import { Title, Text, Paper, Stack, Transition, Group, Collapse, Button, ScrollArea } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import SearchBar from './SearchBar';
 
@@ -22,17 +22,19 @@ export interface CourseProps {
 function Popup() {
   const [course, setCourse] = useState<CourseProps | null>(null);
   return (
-    <>
-      <Title order={2} ta={"center"}>
-        UT Course Finder
-      </Title>
-      <SearchBar courseData={testCourseData} setCourse={setCourse} />
-      <Transition mounted={course != null}>
-        {(styles) => course !== null ? (
-          <SearchResults {...course} />
-        ) : <></>}
-      </Transition>
-    </>
+    <ScrollArea h={500}>
+      <Stack h={"100%"} align='center' justify='center'>
+        <Title mt={180} order={1} ta={"center"}>
+          UT Course Finder
+        </Title>
+        <SearchBar courseData={testCourseData} setCourse={setCourse} />
+      </Stack>
+        <Transition transition={"slide-up"} duration={300} timingFunction='ease' mounted={course != null}>
+          {(styles) => course !== null ? (
+            <SearchResults {...course} />
+          ) : <></>}
+        </Transition>
+    </ScrollArea>
   );
 };
 
