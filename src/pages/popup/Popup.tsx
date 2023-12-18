@@ -1,22 +1,31 @@
 import { useState } from 'react';
 import withSuspense from '@src/shared/hoc/withSuspense';
 import withErrorBoundary from '@src/shared/hoc/withErrorBoundary';
-import { Title, Text, Paper, Stack, Transition, Group, Collapse, Button, ScrollArea } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { Title, Stack, Transition, Group, Collapse, Button, ScrollArea } from "@mantine/core";
 import SearchBar from './SearchBar';
-
-import logo from '@assets/img/logo.svg';
-// import '@pages/popup/Popup.css';
-import useStorage from '@src/shared/hooks/useStorage';
-import exampleThemeStorage from '@src/shared/storages/exampleThemeStorage';
-import { testCourseData } from "./testCourseData"
 import SearchResults from './SearchResults';
+import courseDataJSON from '../../../data/detailedCatalog.json';
+
+// import logo from '@assets/img/logo.svg';
+// import '@pages/popup/Popup.css';
+// import useStorage from '@src/shared/hooks/useStorage';
+// import exampleThemeStorage from '@src/shared/storages/exampleThemeStorage';
+import { testCourseData } from "./testCourseData"
+
 export interface CourseProps {
   title: string;
   number: string;
   description: string;
   prerequisites: string;
   department: string;
+  professors?: string[];
+  id: string;
+}
+export interface CourseOptionProps {
+  title: string;
+  department: string;
+  number: string;
+  id: string;
 }
 
 function Popup() {
@@ -27,9 +36,9 @@ function Popup() {
         <Title mt={180} order={1} ta={"center"}>
           UT Course Finder
         </Title>
-        <SearchBar courseData={testCourseData} setCourse={setCourse} />
+        <SearchBar setCourse={setCourse} />
       </Stack>
-        <Transition transition={"slide-up"} duration={300} timingFunction='ease' mounted={course != null}>
+        <Transition transition={"slide-up"} duration={500} timingFunction='ease' mounted={course !== null}>
           {(styles) => course !== null ? (
             <SearchResults {...course} />
           ) : <></>}
