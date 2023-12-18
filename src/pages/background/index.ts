@@ -1,8 +1,9 @@
 import { getYReferenceLineClasses } from '@mui/x-charts/ChartsReferenceLine/ChartsYReferenceLine';
 import reloadOnUpdate from 'virtual:reload-on-update-in-background-script';
-import { send } from 'vite';
+// import { send } from 'vite';
 import 'webextension-polyfill';
-
+import detailedCatalogJSON from "../../../data/detailedCatalog.json";
+import { CourseOptionProps, CourseProps } from '../popup/Popup';
 reloadOnUpdate('pages/background');
 
 /**
@@ -13,25 +14,42 @@ reloadOnUpdate('pages/content/style.scss');
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log("message: ", message)
-    switch (message.action){
+    switch (message.action) {
         case "GradeDistribution":
-            const {year, semester, title, number, department} = message
+            const { year, semester, title, number, department } = message
             fetch(`https://derec4.github.io/ut-grade-data/${year}%20${semester}.json`)
-            .then((response) => response.json())
-            .then((data) => {
-              const courseGradeData = getGradeDataByCourse(data, title, number, department)
-                console.log("function called")
-                sendResponse({data: courseGradeData})
-            })
+                .then((response) => response.json())
+                .then((data) => {
+                    const courseGradeData = getGradeDataByCourse(data, title, number, department)
+                    console.log("function called")
+                    sendResponse({ data: courseGradeData })
+                })
 
             return true
-        case("ChartOptions"):
-            sendResponse({data :{ year: ["2020", "2021", "2022", "2023"], semester: ["Fall", "Spring", "Summer"] }})
+        case ("ChartOptions"):
+            sendResponse({ data: { year: ["2020", "2021", "2022", "2023"], semester: ["Fall", "Spring", "Summer"] } })
             break;
+        case "CourseSuggestions":
+            let detailedCatalog = detailedCatalogJSON as CourseProps[];
+            let surfaceCourseCatalog : CourseOptionProps[] = detailedCatalog.map((course : CourseProps) => ({
+                title: course["title"],
+                number: course["number"],
+                department: course["department"],
+                id: course["id"]
+            }))
+            sendResponse({data : surfaceCourseCatalog});
+            break;
+        case "CourseInfo":
+            detailedCatalog = detailedCatalogJSON as CourseProps[];
+            const {courseID} = message;
+            sendResponse({data: detailedCatalog[courseID]});
+            break;
+                
+
     }
-    }
+}
 );
-interface GradeDataProps{
+interface GradeDataProps {
     "Academic Year Span": string,
     "Semester": string,
     "Section Number": number,
@@ -44,14 +62,15 @@ interface GradeDataProps{
     "Department/Program": string
 }
 
-function isSameCourse(course: GradeDataProps, title: string, number: string, department: string){
+// Helper functions
+function isSameCourse(course: GradeDataProps, title: string, number: string, department: string) {
     // used to filter courses data for specific course
-    return (course["Course Title"].toLowerCase() === title.toLowerCase() 
-    && course["Course Number"] === parseInt(number) 
-    && course["Course Prefix"].trim().toLowerCase() === department.trim().toLowerCase())
+    return (course["Course Title"].toLowerCase() === title.toLowerCase()
+        && course["Course Number"] === parseInt(number)
+        && course["Course Prefix"].trim().toLowerCase() === department.trim().toLowerCase())
 }
 
-function getGradeDataByCourse(data: GradeDataProps[], title: string, number: string, department: string){
+function getGradeDataByCourse(data: GradeDataProps[], title: string, number: string, department: string) {
     /**
      * @description: Calculates letter grade data for a specific course
      * @param {GradeDataProps[]} data: grade data for all courses
@@ -60,17 +79,17 @@ function getGradeDataByCourse(data: GradeDataProps[], title: string, number: str
      * @param {string} department: course department
      * @return {letter: string[], count: number[]}
      */
-    const courseGradeData : [string, number][] = data.filter((course) => isSameCourse(course, title, number, department))
-            .map((course) => ([course["Letter Grade"], course["Count of letter grade"] ]))
+    const courseGradeData: [string, number][] = data.filter((course) => isSameCourse(course, title, number, department))
+        .map((course) => ([course["Letter Grade"], course["Count of letter grade"]]))
     let letterGrades = Object.fromEntries(courseGradeData.map((course) => [course[0], 0]))
 
     // getting agregregate letter grade counts
-    for (const [letterGrade, count] of courseGradeData){
+    for (const [letterGrade, count] of courseGradeData) {
         letterGrades[letterGrade] += count
     }
     letterGrades = Object.fromEntries(Object.keys(letterGrades).sort().map((letterGrade) => [letterGrade, letterGrades[letterGrade]]))
     if ("Other" in letterGrades) delete letterGrades["Other"]
-    
+
     return {
         letter: Object.keys(letterGrades),
         count: Object.values(letterGrades)
