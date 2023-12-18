@@ -19,25 +19,32 @@ export default function SearchBar({setCourse}: {setCourse: React.Dispatch<React.
 
   const [courseSuggestions, setCourseSuggestions] = useState<CourseOptionProps[]>([]);
   const [search, setSearch] = useState('');
+  const maxSuggestions = 4;
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
 
   useEffect(() => {
-    chrome.runtime.sendMessage({message: "CourseSuggestions"}, (response) => {
+    chrome.runtime.sendMessage({action: "CourseSuggestions"}, (response) => {
       setCourseSuggestions(response.data);
     })
   }, [])
 
   // filtering 
-  const shouldFilterOptions = courseSuggestions.every((item) => item.title !== search || item.number !== search);
-  const filteredOptions = shouldFilterOptions
-    ? courseSuggestions.filter((course : CourseOptionProps) => course.title.toLowerCase().includes(search.toLowerCase().trim())
-    || `${course.department} ${course.number}`.toLowerCase().includes(search.toLowerCase().trim()))
-    : courseSuggestions;
-
+  // const shouldFilterOptions = courseSuggestions.every((item) => item.title !== search || item.number !== search);
+  const getFilteredOptions = () => {
+    let filteredOptions = []
+    for (const course of courseSuggestions) {
+      if (`${course.department} ${course.number}`.toLowerCase().includes(search.toLowerCase().trim()) 
+      || course.title.toLowerCase().trim().includes(search.toLowerCase().trim())){
+        filteredOptions.push(course);
+      }
+      if (filteredOptions.length >= maxSuggestions) break;
+    }
+    return filteredOptions;
+  } 
 // setting search options
-  const options = filteredOptions.map((courseOption: CourseOptionProps, index) => (
+  const options = getFilteredOptions().map((courseOption: CourseOptionProps, index) => (
     <Combobox.Option value={`${JSON.stringify(courseOption)}`} key={`${courseOption.id}`}>
       <CourseOption {...courseOption} />
     </Combobox.Option>
@@ -53,7 +60,7 @@ export default function SearchBar({setCourse}: {setCourse: React.Dispatch<React.
     let courseOption = JSON.parse(courseOptionJSONString) as CourseOptionProps
     setSearch( `${courseOption.department} ${courseOption.number}`);
     // setting new course
-    chrome.runtime.sendMessage({message: "CourseInfo", courseID: courseOption.id}, (response) => {
+    chrome.runtime.sendMessage({action: "CourseInfo", courseID: courseOption.id}, (response) => {
       if (response.data){
         setCourse(response.data);
       } else{ console.log("error: tried to handle course option that was not found", response.data)}
@@ -103,7 +110,7 @@ export default function SearchBar({setCourse}: {setCourse: React.Dispatch<React.
       </Combobox.Target>
 
       <Combobox.Dropdown>
-        <Combobox.Options mah={350} style={{overflowY: 'auto'}} >
+        <Combobox.Options >
           {options.length > 0 ? options : <Combobox.Empty>No Course Found :/</Combobox.Empty>}
         </Combobox.Options>
       </Combobox.Dropdown>
