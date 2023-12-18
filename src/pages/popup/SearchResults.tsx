@@ -5,8 +5,8 @@ import { BarChart } from "@mui/x-charts";
 import { useEffect, useState } from "react";
 import ExpandMoreRoundedIcon from '@mui/icons-material/ExpandMoreRounded';
 import KeyboardArrowRightRoundedIcon from '@mui/icons-material/KeyboardArrowRightRounded';
-import DescriptionIcon from '@mui/icons-material/Description';
-import { testCourseChartData } from "./testCourseData"
+// import DescriptionIcon from '@mui/icons-material/Description';
+// import { testCourseChartData } from "./testCourseData"
 
 
 function InfoToggle({ name, showDefault, content }: { name: string, content: string, showDefault?: boolean }) {
@@ -73,7 +73,9 @@ function GradeDistribution({title, number, department}: {title: string, number: 
         const totalCount = Object.values(gradeData).reduce((a, b) => a + b, 0);
         return `Count ${gradeCount} | ` + (100 * gradeCount / totalCount).toFixed(2).toString() + "%"
     }
-    return gradeData ? (
+    return gradeData == null  ? (
+        <Text> No data found ... </Text>
+    ) : (
         <>
             <Title my={"lg"} order={4} ta={"center"}>Grade Distribution</Title>
             <Group justify="center" wrap="nowrap">
@@ -102,19 +104,19 @@ function GradeDistribution({title, number, department}: {title: string, number: 
                     }}
                     data={chartOptions?.semester} />
             </Group>
-            <Skeleton visible={null === null}>
+            <Skeleton visible={null === gradeData}>
                 {
-
-                }
-                <BarChart
+                    gradeData.count.length === 0 ? (
+                        <Text> No data found ... </Text>
+                    ) : 
+                (<BarChart
                     xAxis={[{ data: gradeData.letter, scaleType: "band", },]}
                     series={[{ data: gradeData.count, valueFormatter: gradeCountFormatter, }]}
                     width={450}
-                    height={200}/>
+                    height={200}/>)
+                }
             </Skeleton>
         </>
-    ) : (
-        <Text> No data found ... </Text>
     );
 }
 
@@ -127,7 +129,6 @@ export default function SearchResults(course: CourseProps) {
             chrome.tabs.create({url : syllabusURL})
         }
         return false;
-        // https://utdirect.utexas.edu/apps/student/coursedocs/nlogon/?year=&semester=&department=ACC&course_number=310F&course_title=&unique=&instructor_first=&instructor_last=&course_type=In+Residence&search=Search
     }
 
     return (
