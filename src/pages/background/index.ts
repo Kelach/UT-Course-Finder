@@ -2,6 +2,7 @@ import { getYReferenceLineClasses } from '@mui/x-charts/ChartsReferenceLine/Char
 import reloadOnUpdate from 'virtual:reload-on-update-in-background-script';
 // import { send } from 'vite';
 import 'webextension-polyfill';
+import { stringSimilarity } from "string-similarity-js";
 import detailedCatalogJSON from "../../../data/detailedCatalog.json";
 import { CourseOptionProps, CourseProps } from '../popup/Popup';
 reloadOnUpdate('pages/background');
@@ -26,7 +27,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 })
 
             return true
-        case ("ChartOptions"):
+        case "ChartOptions":
             sendResponse({ data: { year: ["2020", "2021", "2022", "2023"], semester: ["Fall", "Spring", "Summer"] } })
             break;
         case "CourseSuggestions":
@@ -37,12 +38,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 department: course["department"],
                 id: course["id"]
             }))
+
             sendResponse({data : surfaceCourseCatalog});
             break;
         case "CourseInfo":
-            detailedCatalog = detailedCatalogJSON as CourseProps[];
+            let detailedCatalog_ = detailedCatalogJSON as CourseProps[];
             const {courseID} = message;
-            sendResponse({data: detailedCatalog[courseID]});
+            sendResponse({data: detailedCatalog_[courseID]});
             break;
                 
 
@@ -54,7 +56,7 @@ interface GradeDataProps {
     "Semester": string,
     "Section Number": number,
     "Course Prefix": string,
-    "Course Number": number,
+    "Course Number": number | string,
     "Course Title": string,
     "Course": string,
     "Letter Grade": string,
@@ -64,9 +66,15 @@ interface GradeDataProps {
 
 // Helper functions
 function isSameCourse(course: GradeDataProps, title: string, number: string, department: string) {
-    // used to filter courses data for specific course
-    return (course["Course Title"].toLowerCase() === title.toLowerCase()
-        && course["Course Number"] === parseInt(number)
+    /**
+     * @description: Checks if two courses are the same. (uses similarity metric when comparing titles
+     * due to the inconsistency in course titling between data sets)
+     * @return {boolean}
+     **/
+    if (course["Course Number"].toString() === "311k" && course["Course Prefix"] === "COE")
+        console.log(title, course["Course Title"], stringSimilarity(course["Course Title"].toLowerCase(), title.toLowerCase()), course["Course Number"].toString(), number.toString())
+    return (stringSimilarity(course["Course Title"].toLowerCase(), title.toLowerCase()) >= 0.85
+        && course["Course Number"].toString() === number.toString()
         && course["Course Prefix"].trim().toLowerCase() === department.trim().toLowerCase())
 }
 
@@ -94,7 +102,6 @@ function getGradeDataByCourse(data: GradeDataProps[], title: string, number: str
         letter: Object.keys(letterGrades),
         count: Object.values(letterGrades)
     }
-    // console.log("letterGrades: ", letterGrades);
 }
 
 
