@@ -24,6 +24,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     const courseGradeData = getGradeDataByCourse(data, title, number, department)
                     console.log("function called")
                     sendResponse({ data: courseGradeData })
+                }).catch((error) => {
+                    console.error(error)
+                    sendResponse({ data: { letter: [], count: [] } })
                 })
 
             return true
