@@ -20,12 +20,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             const { year, semester, title, number, department } = message
             fetch(`https://derec4.github.io/ut-grade-data/${year}%20${semester}.json`)
                 .then((response) => response.json())
+                .catch((error) => { 
+                    console.error("error: ", error)
+                    sendResponse({ data: { letter: [], count: [] } })
+                 })
                 .then((data) => {
                     const courseGradeData = getGradeDataByCourse(data, title, number, department)
                     console.log("function called")
                     sendResponse({ data: courseGradeData })
                 }).catch((error) => {
-                    console.error(error)
+                    console.error("error: ", error)
                     sendResponse({ data: { letter: [], count: [] } })
                 })
 
