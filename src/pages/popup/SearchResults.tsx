@@ -74,13 +74,11 @@ function GradeDistribution({ title, number, department }: { title: string, numbe
                 department: department
             },
             (response) => {
-                console.log("recieved grade disribution data", response);
                 setGradeData(response.data);
             })
         console.log("setting data")
         // retreiving chart options
         chrome.runtime.sendMessage({ action: "ChartOptions" }, (response) => {
-            console.log("recieved chart options", response)
             setChartOptions(response.data)
         })
 
@@ -130,7 +128,7 @@ function GradeDistribution({ title, number, department }: { title: string, numbe
                         :
                         <ThemeProvider theme={barChartTheme}>
                             <BarChart
-                                colors={(theme) => { console.log(theme); return ["#fff"] }}
+                                colors={(theme) => {return ["#fff"] }}
                                 // colors going from green to red
                                 xAxis={[{ data: gradeData?.letter || ["A"], scaleType: "band", },]}
                                 series={[{ color: "#fdb462", data: gradeData?.count || [9999], valueFormatter: gradeCountFormatter, }]}

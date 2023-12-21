@@ -60,9 +60,7 @@ export default function SearchBar({setCourse}: {setCourse: React.Dispatch<React.
     setSearch( `${courseOption.department} ${courseOption.number}`);
     // setting new course
     chrome.runtime.sendMessage({action: "CourseInfo", courseID: courseOption.id}, (response) => {
-      if (response.data){
-        setCourse(response.data);
-      } else{ console.log("error: tried to handle course option that was not found", response.data)}
+      if (response.data) setCourse(response.data);
       // closes dropdown
       combobox.closeDropdown();
     })
