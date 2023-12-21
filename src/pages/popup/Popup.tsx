@@ -48,7 +48,6 @@ export interface CourseOptionProps {
 function Popup() {
   const [course, setCourse] = useState<CourseProps | null>(null);
   const { toggleColorScheme } = useMantineColorScheme();
-  const [scroll, scrollTo] = useWindowScroll();
   const computedTheme = useComputedColorScheme("light");
   const fallBackCourse = {
     title: "Course Not Found",
@@ -82,7 +81,7 @@ function Popup() {
         <Title c={"orange"} mb={25} mt={95} order={1} ta={"center"}>
           UT Course Finder
         </Title>
-        <SearchBar scrollTo={scrollTo} setCourse={setCourse} />
+        <SearchBar setCourse={setCourse} />
       </Stack>
       <Transition transition={"slide-up"} duration={500} timingFunction='ease' mounted={course !== null}>
           {(styles) => course !== null ? (
