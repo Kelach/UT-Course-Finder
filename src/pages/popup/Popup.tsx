@@ -1,16 +1,32 @@
 import { useState } from 'react';
 import withSuspense from '@src/shared/hoc/withSuspense';
 import withErrorBoundary from '@src/shared/hoc/withErrorBoundary';
-import { Title, Stack, Transition, Group, Collapse, Button, ScrollArea } from "@mantine/core";
+import { Title, Stack, Transition, useMantineColorScheme, Button, Collapse, ScrollArea, Group, ActionIcon, useComputedColorScheme } from "@mantine/core";
 import SearchBar from './SearchBar';
 import SearchResults from './SearchResults';
-import courseDataJSON from '../../../data/detailedCatalog.json';
+import { useWindowScroll } from '@mantine/hooks';
+import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
+import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
+import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
+// import { DarkModeOutlined, FeedbackOutlined, LightModeOutlined } from '@mui/icons-material';
 
 // import logo from '@assets/img/logo.svg';
 // import '@pages/popup/Popup.css';
 // import useStorage from '@src/shared/hooks/useStorage';
 // import exampleThemeStorage from '@src/shared/storages/exampleThemeStorage';
-import { testCourseData } from "./testCourseData"
+/**
+ * @todo:
+ * - [X] create better default view when no grade data is found
+ * - [X] handle 404 errors when fetching database 
+ * - [X] update styles with UT theme colors
+ * - [X] add theme changing button (light vs. dark)
+ * - implement course topics display (perhaps another collasbles)
+ * - [X] make course search transition smoother (stretch) idea
+ * - consider creating own grades database (stretch)
+ * - add loading animation when fetching data (stretch)
+ * - clean up course titling e.g removing "TCCN: ..." + long course numbers e.g. 109s, 209s, 309s, ... (stretch)
+ * 
+ */
 
 export interface CourseProps {
   title: string;
@@ -18,7 +34,8 @@ export interface CourseProps {
   description: string;
   prerequisites: string;
   department: string;
-  professors?: string[];
+  professors: string[];
+  topics: string[][];
   id: string;
 }
 export interface CourseOptionProps {
@@ -30,18 +47,47 @@ export interface CourseOptionProps {
 
 function Popup() {
   const [course, setCourse] = useState<CourseProps | null>(null);
+  const { toggleColorScheme } = useMantineColorScheme();
+  const [scroll, scrollTo] = useWindowScroll();
+  const computedTheme = useComputedColorScheme("light");
+  const fallBackCourse = {
+    title: "Course Not Found",
+    number: "",
+    description: "",
+    prerequisites: "",
+    department: "",
+    professors: [],
+    topics: [],
+    id: ""
+  }
+  const handleFeedbackRequest = () => {
+    const feedbackRequested = confirm("Are you sure you want to give feedback in a new tab?");
+    if (feedbackRequested) {
+      const feedbackURL = `https://forms.gle/CLs5edJC4dHSA9xN6`
+      chrome.tabs.create({ url: feedbackURL })
+    }
+    return false;
+  }
   return (
     <ScrollArea h={500}>
+      <Group justify='space-between'>
+        <ActionIcon variant='transparent' size={"xl"} onClick={() => { console.log("toggling scheme"); toggleColorScheme() }}>
+          { computedTheme == "light" ? <DarkModeOutlinedIcon /> : <LightModeOutlinedIcon />}
+        </ActionIcon>
+        <ActionIcon variant='transparent' size={"xl"} onClick={handleFeedbackRequest}>
+          {<FeedbackOutlinedIcon />}
+        </ActionIcon>
+      </Group>
       <Stack h={"100%"} align='center' justify='center'>
-        <Title mt={180} order={1} ta={"center"}>
+        <Title c={"orange"} mb={25} mt={95} order={1} ta={"center"}>
           UT Course Finder
         </Title>
-        <SearchBar setCourse={setCourse} />
+        <SearchBar scrollTo={scrollTo} setCourse={setCourse} />
       </Stack>
-        <Transition transition={"slide-up"} duration={500} timingFunction='ease' mounted={course !== null}>
+      <Transition transition={"slide-up"} duration={500} timingFunction='ease' mounted={course !== null}>
           {(styles) => course !== null ? (
-            <SearchResults {...course} />
-          ) : <></>}
+             <SearchResults {...course || fallBackCourse} />
+          ) : <></> }
         </Transition>
     </ScrollArea>
   );
