@@ -3,7 +3,7 @@ import reloadOnUpdate from 'virtual:reload-on-update-in-background-script';
 // import { send } from 'vite';
 import 'webextension-polyfill';
 import { stringSimilarity } from "string-similarity-js";
-import detailedCatalogJSON from "../../../data/detailedCatalog.json";
+// import detailedCatalogJSON from "../../../data/detailedCatalog.json";
 import { CourseOptionProps, CourseProps } from '../popup/Popup';
 reloadOnUpdate('pages/background');
 
@@ -12,6 +12,7 @@ reloadOnUpdate('pages/background');
  * If you do not use the css of the content script, please delete it.
  */
 reloadOnUpdate('pages/content/style.scss');
+let detailedCatalog : CourseProps[] = [];
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch (message.action) {
@@ -34,7 +35,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             sendResponse({ data: { year: ["2020", "2021", "2022", "2023"], semester: ["Fall", "Spring", "Summer"] } })
             break;
         case "CourseSuggestions":
-            let detailedCatalog = detailedCatalogJSON as CourseProps[];
             let surfaceCourseCatalog : CourseOptionProps[] = detailedCatalog.map((course : CourseProps) => ({
                 title: course["title"],
                 number: course["number"],
@@ -45,9 +45,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             sendResponse({data : surfaceCourseCatalog});
             break;
         case "CourseInfo":
-            let detailedCatalog_ = detailedCatalogJSON as CourseProps[];
             const {courseID} = message;
-            sendResponse({data: detailedCatalog_[courseID]});
+            sendResponse({data: detailedCatalog[courseID]});
             break;
                 
 
@@ -106,5 +105,14 @@ function getGradeDataByCourse(data: GradeDataProps[], title: string, number: str
     }
 }
 
+async function loadCatalog(){
+    fetch("https://raw.githubusercontent.com/Kelach/UT-Course-Finder/main/data/detailedCatalog.json?token=GHSAT0AAAAAACHMBM4FTTPWE5LCQQJV4YE2ZMDZSNA")
+    .then((response) => response.json())
+    .catch((error) => {console.log(error); return []})
+    .then((data : CourseProps[]) => {
+        detailedCatalog = data;
+    })
+}
 
+loadCatalog();
 console.log('background loaded');
