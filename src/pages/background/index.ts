@@ -14,22 +14,18 @@ reloadOnUpdate('pages/background');
 reloadOnUpdate('pages/content/style.scss');
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log("message: ", message)
     switch (message.action) {
         case "GradeDistribution":
             const { year, semester, title, number, department } = message
             fetch(`https://derec4.github.io/ut-grade-data/${year}%20${semester}.json`)
                 .then((response) => response.json())
                 .catch((error) => { 
-                    console.error("error: ", error)
                     sendResponse({ data: { letter: [], count: [] } })
                  })
                 .then((data) => {
                     const courseGradeData = getGradeDataByCourse(data, title, number, department)
-                    console.log("function called")
                     sendResponse({ data: courseGradeData })
                 }).catch((error) => {
-                    console.error("error: ", error)
                     sendResponse({ data: { letter: [], count: [] } })
                 })
 
@@ -79,7 +75,6 @@ function isSameCourse(course: GradeDataProps, title: string, number: string, dep
      * @return {boolean}
      **/
     if (course["Course Number"].toString() === "311k" && course["Course Prefix"] === "COE")
-        console.log(title, course["Course Title"], stringSimilarity(course["Course Title"].toLowerCase(), title.toLowerCase()), course["Course Number"].toString(), number.toString())
     return (stringSimilarity(course["Course Title"].toLowerCase(), title.toLowerCase()) >= 0.85
         && course["Course Number"].toString() === number.toString()
         && course["Course Prefix"].trim().toLowerCase() === department.trim().toLowerCase())

@@ -70,7 +70,7 @@ function Popup() {
   return (
     <ScrollArea h={500}>
       <Group justify='space-between'>
-        <ActionIcon variant='transparent' size={"xl"} onClick={() => { console.log("toggling scheme"); toggleColorScheme() }}>
+        <ActionIcon variant='transparent' size={"xl"} onClick={() => {toggleColorScheme() }}>
           { computedTheme == "light" ? <DarkModeOutlinedIcon /> : <LightModeOutlinedIcon />}
         </ActionIcon>
         <ActionIcon variant='transparent' size={"xl"} onClick={handleFeedbackRequest}>
