@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Combobox, InputBase, useCombobox, Group, Text, CloseButton } from '@mantine/core';
+import { Combobox, InputBase, useCombobox, Group, Text, CloseButton, ScrollAreaAutosize } from '@mantine/core';
 import { CourseOptionProps, CourseProps } from './Popup';
 import { useEffect } from 'react';
 
@@ -15,11 +15,11 @@ function CourseOption(course: CourseOptionProps) {
   )
 }
 
-export default function SearchBar({setCourse}: {setCourse: React.Dispatch<React.SetStateAction<CourseProps | null>>}) {
+export default function SearchBar({setCourse}: {setCourse: React.Dispatch<React.SetStateAction<CourseProps | null>>} ) {
 
   const [courseSuggestions, setCourseSuggestions] = useState<CourseOptionProps[]>([]);
   const [search, setSearch] = useState('');
-  const maxSuggestions = 4;
+  const maxSuggestions = 10;
   const combobox = useCombobox({
     onDropdownClose: () => combobox.resetSelectedOption(),
   });
@@ -31,7 +31,6 @@ export default function SearchBar({setCourse}: {setCourse: React.Dispatch<React.
   }, [])
 
   // filtering 
-  // const shouldFilterOptions = courseSuggestions.every((item) => item.title !== search || item.number !== search);
   const getFilteredOptions = () => {
     let filteredOptions = []
     for (const course of courseSuggestions) {
@@ -111,7 +110,9 @@ export default function SearchBar({setCourse}: {setCourse: React.Dispatch<React.
 
       <Combobox.Dropdown>
         <Combobox.Options >
+          <ScrollAreaAutosize scrollbarSize={"0.4rem"} mah={200} type='scroll' >
           {options.length > 0 ? options : <Combobox.Empty>No Course Found :/</Combobox.Empty>}
+          </ScrollAreaAutosize>
         </Combobox.Options>
       </Combobox.Dropdown>
     </Combobox>
