@@ -6,7 +6,7 @@ import packageJson from './package.json' assert { type: 'json' };
  */
 const manifest = {
   manifest_version: 3,
-  name: packageJson.name,
+  name: "UT Course Finder",
   version: packageJson.version,
   description: packageJson.description,
   permissions: ['storage'],
@@ -20,13 +20,17 @@ const manifest = {
   },
   action: {
     default_popup: 'src/pages/popup/index.html',
-    default_icon: 'icon-34.png',
+    default_icon: 'icon-32.png',
   },
   // chrome_url_overrides: {
   //   newtab: 'src/pages/newtab/index.html',
   // },
   icons: {
     128: 'icon-128.png',
+    48: 'icon-48.png',
+    32: 'icon-32.png',
+    16: 'icon-16.png',
+
   },
   content_scripts: [
     // {
