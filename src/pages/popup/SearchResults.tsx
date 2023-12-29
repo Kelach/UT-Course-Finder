@@ -76,7 +76,7 @@ function GradeDistribution({ title, number, department }: { title: string, numbe
             (response) => {
                 setGradeData(response.data);
             })
-        console.log("setting data")
+        // console.log("setting data")
         // retreiving chart options
         chrome.runtime.sendMessage({ action: "ChartOptions" }, (response) => {
             setChartOptions(response.data)
