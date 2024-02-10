@@ -11,7 +11,7 @@ reloadOnUpdate('pages/background');
  * If you do not use the css of the content script, please delete it.
  */
 reloadOnUpdate('pages/content/style.scss');
-const BASE_DATA_URL = "https://raw.githubusercontent.com/Kelach/UT-Course-Finder/main/data/"
+const BASE_DATA_URL = "https://raw.githubusercontent.com/Kelach/UT-Course-Finder/main/data"
 let detailedCatalog : CourseProps[] = [];
 interface GradeDataProps {
     "Semester": string,
