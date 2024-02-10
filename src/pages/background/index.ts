@@ -11,26 +11,22 @@ reloadOnUpdate('pages/background');
  * If you do not use the css of the content script, please delete it.
  */
 reloadOnUpdate('pages/content/style.scss');
-
+const BASE_DATA_URL = "https://raw.githubusercontent.com/Kelach/UT-Course-Finder/main/data/"
 let detailedCatalog : CourseProps[] = [];
 interface GradeDataProps {
-    "Academic Year Span": string,
     "Semester": string,
-    "Section Number": number,
-    "Course Prefix": string,
-    "Course Number": number | string,
-    "Course Title": string,
-    "Course": string,
-    "Letter Grade": string,
-    "Count of letter grade": number,
-    "Department/Program": string
+    "Number": string,
+    "Title": string,
+    "Grades": {string : number},
+    "Department": string
 }
+https://raw.githubusercontent.com/Kelach/UT-Course-Finder/main/data/grades/Fall%202020.json
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch (message.action) {
         case "GradeDistribution":
             const { year, semester, title, number, department } = message
             // console.log(`https://derec4.github.io/ut-grade-data/${year}%20${semester}.json`)
-            fetch(`https://derec4.github.io/ut-grade-data/${year}%20${semester}.json`)
+            fetch(`${BASE_DATA_URL}/grades/${semester}%20${year}.json`)
                 .then((response) => response.json())
                 .catch((error) => {
                     console.log(error)
@@ -77,10 +73,9 @@ function isSameCourse(course: GradeDataProps, title: string, number: string, dep
      * due to the inconsistency in course titling between data sets)
      * @return {boolean}
      **/
-    // if (course["Course Number"].toString() === "311k" && course["Course Prefix"] === "COE")
-    return (stringSimilarity(course["Course Title"].toLowerCase(), title.toLowerCase()) >= 0.85
-        && course["Course Number"].toString() === number.toString()
-        && course["Course Prefix"].trim().toLowerCase() === department.trim().toLowerCase())
+    return (stringSimilarity(course["Title"].toLowerCase(), title.toLowerCase()) >= 0.6
+        && stringSimilarity(course["Number"].trim().toLowerCase(), number.trim().toLowerCase()) >= 0.90
+        && stringSimilarity(course["Department"].trim().toLowerCase(), department.trim().toLowerCase()) >= 0.95)
 }
 
 function getGradeDataByCourse(data: GradeDataProps[], title: string, number: string, department: string) {
@@ -92,26 +87,21 @@ function getGradeDataByCourse(data: GradeDataProps[], title: string, number: str
      * @param {string} department: course department
      * @return {letter: string[], count: number[]}
      */
-    const courseGradeData: [string, number][] = data.filter((course) => isSameCourse(course, title, number, department))
-    .map((course) => ([course["Letter Grade"], course["Count of letter grade"]]))
-    
-    let letterGrades = Object.fromEntries(courseGradeData.map((course) => [course[0], 0]))
+    const courseGradeData: GradeDataProps | undefined = data.find((course) => isSameCourse(course, title, number, department))
+    if (!courseGradeData) return { letter: [], count: [] }
+    // console.log(data.filter(course => isSameCourse(course, title, number, department)))
+    // console.log(stringSimilarity("301H".toLowerCase(), "301".toLowerCase()) )
 
-    // getting agregregate letter grade counts
-    for (const [letterGrade, count] of courseGradeData) {
-        letterGrades[letterGrade] += count
-    }
-    letterGrades = Object.fromEntries(Object.keys(letterGrades).sort().map((letterGrade) => [letterGrade, letterGrades[letterGrade]]))
-    if ("Other" in letterGrades) delete letterGrades["Other"]
+    if ("Other" in courseGradeData["Grades"]) delete courseGradeData["Grades"]["Other"]
 
     return {
-        letter: Object.keys(letterGrades),
-        count: Object.values(letterGrades)
+        letter: Object.keys(courseGradeData["Grades"]),
+        count: Object.values(courseGradeData["Grades"])
     }
 }
 
 async function loadCatalog(){
-    fetch("https://raw.githubusercontent.com/Kelach/UT-Course-Finder/main/data/detailedCatalog.json")
+    fetch(`${BASE_DATA_URL}/courses/detailedCatalog.json`)
     .then((response) => response.json())
     .catch((error) => {console.log(error); return []})
     .then((data : CourseProps[]) => {
