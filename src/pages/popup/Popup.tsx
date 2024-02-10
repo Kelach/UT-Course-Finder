@@ -16,18 +16,31 @@ import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 // import exampleThemeStorage from '@src/shared/storages/exampleThemeStorage';
 /**
  * @todo:
- * - [ ] fix course no course found error
- * - [ ] improve course searching to search by course number or course title
+ * - [X] fix course no course found error
  * - [ ] improve course grade distribution data
+ * - [ ] improve course searching to search by course number or course title
  * - [ ] re-scrape ut professor information for each semester and add it as well as rmp rating for that professor
- * - [ ] add comments sections feature for each course (big-stretch)
+ * - [ ] add comments sections feature for each course...only verified ut students can comment (big-stretch)
+*     - [ ] first define the schema for the comments, here's a starting point:
+  *        comment: {
+  *        - id: string,
+  *        - upvotes: number,
+  *        - downvotes: number,
+  *        - content: string,
+  *        - author: string,
+  *        - date: string,
+  *        - isReply: boolean
+  *        - replies: comment[]
+  *     }
+ *    - [ ] add upvote and downvote feature for comments
+ *    - [ ] add comment sorting by (upvotes, time, default should be a combo of most upvotes and time)
  * - [X] create better default view when no grade data is found
  * - [X] handle 404 errors when fetching database 
  * - [X] update styles with UT theme colors
  * - [X] add theme changing button (light vs. dark)
  * - implement course topics display (perhaps another collasbles)
  * - [X] make course search transition smoother (stretch) idea
- * - consider creating own grades database (stretch)
+ * - [X] consider creating own grades database (stretch)
  * - add loading animation when fetching data (stretch)
  * - clean up course titling e.g removing "TCCN: ..." + long course numbers e.g. 109s, 209s, 309s, ... (stretch)
  * 
