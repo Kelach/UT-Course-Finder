@@ -3,6 +3,9 @@
 /node_modules
 /crawler
 
+# keep the data folder
+!/crawler/data 
+
 # hidden files
 .*
 !.gitignore
