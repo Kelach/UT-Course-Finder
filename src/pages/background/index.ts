@@ -3,57 +3,16 @@ import reloadOnUpdate from 'virtual:reload-on-update-in-background-script';
 // import { send } from 'vite';
 import 'webextension-polyfill';
 import { stringSimilarity } from "string-similarity-js";
-import detailedCatalogJSON from "../../../data/detailedCatalog.json";
+// import detailedCatalogJSON from "../../../data/detailedCatalog.json";
 import { CourseOptionProps, CourseProps } from '../popup/Popup';
 reloadOnUpdate('pages/background');
-
 /**
  * Extension reloading is necessary because the browser automatically caches the css.
  * If you do not use the css of the content script, please delete it.
  */
 reloadOnUpdate('pages/content/style.scss');
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    switch (message.action) {
-        case "GradeDistribution":
-            const { year, semester, title, number, department } = message
-            fetch(`https://derec4.github.io/ut-grade-data/${year}%20${semester}.json`)
-                .then((response) => response.json())
-                .catch((error) => { 
-                    sendResponse({ data: { letter: [], count: [] } })
-                 })
-                .then((data) => {
-                    const courseGradeData = getGradeDataByCourse(data, title, number, department)
-                    sendResponse({ data: courseGradeData })
-                }).catch((error) => {
-                    sendResponse({ data: { letter: [], count: [] } })
-                })
-
-            return true
-        case "ChartOptions":
-            sendResponse({ data: { year: ["2020", "2021", "2022", "2023"], semester: ["Fall", "Spring", "Summer"] } })
-            break;
-        case "CourseSuggestions":
-            let detailedCatalog = detailedCatalogJSON as CourseProps[];
-            let surfaceCourseCatalog : CourseOptionProps[] = detailedCatalog.map((course : CourseProps) => ({
-                title: course["title"],
-                number: course["number"],
-                department: course["department"],
-                id: course["id"]
-            }))
-
-            sendResponse({data : surfaceCourseCatalog});
-            break;
-        case "CourseInfo":
-            let detailedCatalog_ = detailedCatalogJSON as CourseProps[];
-            const {courseID} = message;
-            sendResponse({data: detailedCatalog_[courseID]});
-            break;
-                
-
-    }
-}
-);
+let detailedCatalog : CourseProps[] = [];
 interface GradeDataProps {
     "Academic Year Span": string,
     "Semester": string,
@@ -66,6 +25,50 @@ interface GradeDataProps {
     "Count of letter grade": number,
     "Department/Program": string
 }
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    switch (message.action) {
+        case "GradeDistribution":
+            const { year, semester, title, number, department } = message
+            // console.log(`https://derec4.github.io/ut-grade-data/${year}%20${semester}.json`)
+            fetch(`https://derec4.github.io/ut-grade-data/${year}%20${semester}.json`)
+                .then((response) => response.json())
+                .catch((error) => {
+                    console.log(error)
+                    sendResponse({ data: { letter: [], count: [] } })
+                 })
+                .then((data) => {
+                    const courseGradeData = getGradeDataByCourse(data, title, number, department)
+                    // console.log(data)
+                    sendResponse({ data: courseGradeData })
+                }).catch((error) => {
+                    console.log(error)
+                    sendResponse({ data: { letter: [], count: [] } })
+                })
+
+            return true
+        case "ChartOptions":
+            sendResponse({ data: { year: ["2020", "2021", "2022", "2023"], semester: ["Fall", "Spring", "Summer"] } })
+            break;
+        case "CourseSuggestions":
+            let surfaceCourseCatalog : CourseOptionProps[] = detailedCatalog.map((course : CourseProps) => ({
+                title: course["title"],
+                number: course["number"],
+                department: course["department"],
+                id: course["id"]
+            }))
+
+            sendResponse({data : surfaceCourseCatalog});
+            break;
+        case "CourseInfo":
+            const {courseID} = message;
+            sendResponse({data: detailedCatalog[courseID]});
+            break;
+                
+
+    }
+}
+);
+
 
 // Helper functions
 function isSameCourse(course: GradeDataProps, title: string, number: string, department: string) {
@@ -74,7 +77,7 @@ function isSameCourse(course: GradeDataProps, title: string, number: string, dep
      * due to the inconsistency in course titling between data sets)
      * @return {boolean}
      **/
-    if (course["Course Number"].toString() === "311k" && course["Course Prefix"] === "COE")
+    // if (course["Course Number"].toString() === "311k" && course["Course Prefix"] === "COE")
     return (stringSimilarity(course["Course Title"].toLowerCase(), title.toLowerCase()) >= 0.85
         && course["Course Number"].toString() === number.toString()
         && course["Course Prefix"].trim().toLowerCase() === department.trim().toLowerCase())
@@ -90,7 +93,8 @@ function getGradeDataByCourse(data: GradeDataProps[], title: string, number: str
      * @return {letter: string[], count: number[]}
      */
     const courseGradeData: [string, number][] = data.filter((course) => isSameCourse(course, title, number, department))
-        .map((course) => ([course["Letter Grade"], course["Count of letter grade"]]))
+    .map((course) => ([course["Letter Grade"], course["Count of letter grade"]]))
+    
     let letterGrades = Object.fromEntries(courseGradeData.map((course) => [course[0], 0]))
 
     // getting agregregate letter grade counts
@@ -106,5 +110,14 @@ function getGradeDataByCourse(data: GradeDataProps[], title: string, number: str
     }
 }
 
+async function loadCatalog(){
+    fetch("https://raw.githubusercontent.com/Kelach/UT-Course-Finder/main/data/detailedCatalog.json")
+    .then((response) => response.json())
+    .catch((error) => {console.log(error); return []})
+    .then((data : CourseProps[]) => {
+        detailedCatalog = data;
+    })
+}
 
-console.log('background loaded');
+loadCatalog();
+// console.log('background loaded');
