@@ -16,6 +16,11 @@ import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
 // import exampleThemeStorage from '@src/shared/storages/exampleThemeStorage';
 /**
  * @todo:
+ * - [ ] fix course no course found error
+ * - [ ] improve course searching to search by course number or course title
+ * - [ ] improve course grade distribution data
+ * - [ ] re-scrape ut professor information for each semester and add it as well as rmp rating for that professor
+ * - [ ] add comments sections feature for each course (big-stretch)
  * - [X] create better default view when no grade data is found
  * - [X] handle 404 errors when fetching database 
  * - [X] update styles with UT theme colors
