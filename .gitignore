@@ -4,7 +4,7 @@
 /crawler
 
 # keep the data folder
-!/crawler/data 
+!/crawler/data/*
 
 # hidden files
 .*
