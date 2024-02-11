@@ -1,5 +1,5 @@
 import { Title, Stack, Group, Badge, Collapse, Paper, Text, Select, Skeleton, ActionIcon, Divider, useComputedColorScheme, ScrollArea } from "@mantine/core";
-import { useDisclosure } from "@mantine/hooks";
+import { useDisclosure, useHover } from "@mantine/hooks";
 import { CourseProps } from "./Popup";
 import { BarChart } from "@mui/x-charts";
 import { useEffect, useState } from "react";
@@ -52,10 +52,8 @@ function NoGradeData() {
     )
 }
 
-function GradeDistribution({ title, number, department }: { title: string, number: string, department: string }) {
+function GradeDistribution({ title, number, department, year, semester, setYear, setSemester }: { title: string, number: string, department: string, year: string, semester: string, setYear: (year: string) => void, setSemester: (semester: string) => void}) {
     //**CONSTANTS */
-    const [year, setYear] = useState<string>("2023");
-    const [semester, setSemester] = useState<string>("Spring");
     const [gradeData, setGradeData] = useState<GradeDataProps | null>(null);
     const [chartOptions, setChartOptions] = useState<ChartOptionsProps | null>(null);
     const computedColorScheme = useComputedColorScheme("light");
@@ -143,6 +141,11 @@ function GradeDistribution({ title, number, department }: { title: string, numbe
 
 //**** Main Component ****
 export default function SearchResults(course: CourseProps) {
+    const {hovered, ref:hoverRef} = useHover();
+    // constants used for grade distribution + professor info
+    const [year, setYear] = useState<string>("2023"); 
+    const [semester, setSemester] = useState<string>("Spring");
+    const [professor, setProfessor] = useState<{firstName?: string, lastName?: string, rating?: string}>({})
     const handleSyllabusRequest = () => {
         const syllabusRequested = confirm("Are you sure you want to view this syllabus in a new tab?");
         if (syllabusRequested) {
@@ -151,18 +154,35 @@ export default function SearchResults(course: CourseProps) {
         }
         return false;
     }
+    useEffect(() => {
+        const professorObj = course.professors.find((professorObj) => professorObj["year"] === year && professorObj["semester"] == semester);
+        // if (professorObj !== undefined) {
+        //     chrome.runtime.sendMessage({ action: "ProfessorRating", firstName: professorObj["firstName"], lastName: professorObj["lastName"] }, (response) => {
+        //         setProfessor({ firstName: professorObj["firstName"], lastName: professorObj["lastName"], rating: response.data.rating })
+        //     })
+        // }
+        if (professorObj !== undefined) {
+            setProfessor({ firstName: professorObj["firstName"], lastName: professorObj["lastName"], rating:"4.5" })
+        } else{
+            setProfessor({})
+            console.log("no prof found", course.professors)
+        }
+
+    }, [year, semester])
 
     return (
         <Paper mt={10} shadow="xl" w={475} radius={"xl"} my={"md"} mx={"sm"} p={"md"}>
             <Title ta={"center"} order={1}>{course.department} {course.number}</Title>
             <Text ta={"center"} c={"dimmed"} fs={"italic"}>{course.title}</Text>
-            <Group mt={"xs"} justify="center" align="center" wrap="nowrap">
-                <Badge component="button" onClick={handleSyllabusRequest} variant="light">
+            <Group ref={hoverRef} mt={"xs"} justify="center" align="center" wrap="nowrap">
+                <Badge  component="button" style={{cursor: "pointer"}} onClick={handleSyllabusRequest} variant={ hovered ? "outline" : "light"}>
                     View Syllabus
                 </Badge>
             </Group>
             <Divider mx={"md"} mt={10} h={10} />
-            <GradeDistribution title={course.title} department={course.department} number={course.number} />
+            <GradeDistribution year={year} setYear={setYear} semester={semester} setSemester={setSemester} title={course.title} department={course.department} number={course.number} />
+            <Title order={5} mt={"lg"}>Taught By: {professor?.lastName}, {professor?.firstName} rating: {professor?.rating}</Title>
+
             <Stack gap={0} mt={"lg"}>
                 <InfoToggle name={"Prerequisites"} content={course.prerequisites} showDefault={true} />
                 <Divider mx={"md"} mt={10} h={20} />
