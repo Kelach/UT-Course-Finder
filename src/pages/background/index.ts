@@ -1,16 +1,16 @@
-import { getYReferenceLineClasses } from '@mui/x-charts/ChartsReferenceLine/ChartsYReferenceLine';
 import reloadOnUpdate from 'virtual:reload-on-update-in-background-script';
-// import { send } from 'vite';
 import 'webextension-polyfill';
 import { stringSimilarity } from "string-similarity-js";
-// import detailedCatalogJSON from "../../../data/detailedCatalog.json";
 import { CourseOptionProps, CourseProps } from '../popup/Popup';
-reloadOnUpdate('pages/background');
+import { logCourseSearchEvent } from './firebase';
+// import { send } from 'vite';
 /**
  * Extension reloading is necessary because the browser automatically caches the css.
  * If you do not use the css of the content script, please delete it.
- */
+*/
 reloadOnUpdate('pages/content/style.scss');
+reloadOnUpdate('pages/background');
+
 const BASE_DATA_URL = "https://raw.githubusercontent.com/Kelach/UT-Course-Finder/main/data"
 let detailedCatalog : CourseProps[] = [];
 interface GradeDataProps {
@@ -20,12 +20,11 @@ interface GradeDataProps {
     "Grades": {string : number},
     "Department": string
 }
-https://raw.githubusercontent.com/Kelach/UT-Course-Finder/main/data/grades/Fall%202020.json
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch (message.action) {
         case "GradeDistribution":
             const { year, semester, title, number, department } = message
-            // console.log(`https://derec4.github.io/ut-grade-data/${year}%20${semester}.json`)
             fetch(`${BASE_DATA_URL}/grades/${semester}%20${year}.json`)
                 .then((response) => response.json())
                 .catch((error) => {
@@ -58,6 +57,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         case "CourseInfo":
             const {courseID} = message;
             sendResponse({data: detailedCatalog[courseID]});
+            logCourseSearchEvent(detailedCatalog[courseID]); 
             break;
                 
 
@@ -108,6 +108,5 @@ async function loadCatalog(){
         detailedCatalog = data;
     })
 }
-
 loadCatalog();
-// console.log('background loaded');
+console.log("background loaded")

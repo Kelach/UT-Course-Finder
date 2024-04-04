@@ -4,37 +4,52 @@ import withErrorBoundary from '@src/shared/hoc/withErrorBoundary';
 import { Title, Stack, Transition, useMantineColorScheme, Button, Collapse, ScrollArea, Group, ActionIcon, useComputedColorScheme } from "@mantine/core";
 import SearchBar from './SearchBar';
 import SearchResults from './SearchResults';
-import { useWindowScroll } from '@mantine/hooks';
 import FeedbackOutlinedIcon from '@mui/icons-material/FeedbackOutlined';
 import DarkModeOutlinedIcon from '@mui/icons-material/DarkModeOutlined';
 import LightModeOutlinedIcon from '@mui/icons-material/LightModeOutlined';
+import {doc, onSnapshot } from 'firebase/firestore';
+import { Text } from '@mantine/core';
+import { firestore } from '../background/firebase';
+import { useEffect } from 'react';
 // import { DarkModeOutlined, FeedbackOutlined, LightModeOutlined } from '@mui/icons-material';
-
 // import logo from '@assets/img/logo.svg';
 // import '@pages/popup/Popup.css';
 // import useStorage from '@src/shared/hooks/useStorage';
 // import exampleThemeStorage from '@src/shared/storages/exampleThemeStorage';
+// vision: UT course indexer that is integrated with the course schedule during registration times
+// and allows students to register for courses, and keep track of their course schedules
 /**
  * @todo:
+ * - [ ] add text hover labels for feedback, theme, and course flagging icons
+ * - [ ] hover expand descriptions, leave prerequisites open by default
+ * - [ ] improve course searching to search by course number or course title (will need to build a scraper that scrapes course schedule)
+ * - [X] add simple firestore listening to track course searches
+ * - [ ] add share button for main screen
+ * - [ ] include list of profs who've taught course instead of current rmp
+ * - [ ] add button to flag course for being incorrect 
+ * - [ ] connect with google analytics, add most popular course search message
+ * - [ ] add button to rate chrome extension (later)
+ * - [ ] show professor for each grade semester + add rmp rating (build synamic web scraper) -> https://www.npmjs.com/package/node-html-parser
+ * - [ ] add course schedule integration (stretch)
+ * - [Z] add comments sections feature for each course...only verified ut students can comment (big-stretch)
+ *     - [ ] first define the schema for the comments, here's a starting point:
+ *        comment: {
+ *        - id: string,
+ *        - upvotes: number,
+ *        - downvotes: number,
+ *        - content: string,
+ *        - author: string,
+ *        - date: string,
+ *        - isReply: boolean
+ *        - replies: comment[]
+ *     }
+ *    - [Z] add upvote and downvote feature for comments
+ *    - [Z] add comment sorting by (upvotes, time, default should be a combo of most upvotes and time)
+ * - [X] add hover effect to view syllabus badge
  * - [X] fix course no course found error
- * - [ ] improve course grade distribution data
- * - [ ] improve course searching to search by course number or course title
- * - [ ] re-scrape ut professor information for each semester and add it as well as rmp rating for that professor
- * - [ ] add comments sections feature for each course...only verified ut students can comment (big-stretch)
-*     - [ ] first define the schema for the comments, here's a starting point:
-  *        comment: {
-  *        - id: string,
-  *        - upvotes: number,
-  *        - downvotes: number,
-  *        - content: string,
-  *        - author: string,
-  *        - date: string,
-  *        - isReply: boolean
-  *        - replies: comment[]
-  *     }
- *    - [ ] add upvote and downvote feature for comments
- *    - [ ] add comment sorting by (upvotes, time, default should be a combo of most upvotes and time)
+ * - [X] re-scrape ut professor information for each semester and add it as well as rmp rating for that professor
  * - [X] create better default view when no grade data is found
+ * - [X] improve course grade distribution data (good enough for now)
  * - [X] handle 404 errors when fetching database 
  * - [X] update styles with UT theme colors
  * - [X] add theme changing button (light vs. dark)
@@ -52,7 +67,7 @@ export interface CourseProps {
   description: string;
   prerequisites: string;
   department: string;
-  professors: string[];
+  professors: {year: string, semester: string, firstName: string, lastName: string}[];
   topics: string[][];
   id: string;
 }
@@ -65,6 +80,7 @@ export interface CourseOptionProps {
 
 function Popup() {
   const [course, setCourse] = useState<CourseProps | null>(null);
+  const [searchCount, setSearchCount] = useState<number>(0);
   const { toggleColorScheme } = useMantineColorScheme();
   const computedTheme = useComputedColorScheme("light");
   const fallBackCourse = {
@@ -85,6 +101,14 @@ function Popup() {
     }
     return false;
   }
+  useEffect(() => {
+    console.log("snapshot placed")
+    onSnapshot(doc(firestore, "count", (new Date()).toLocaleDateString('en-US').replaceAll("/", "-")), (doc) : void => {
+      if (doc.exists()) setSearchCount(doc?.data().count || 0);
+    });
+  }, []);
+
+  
   return (
     <ScrollArea h={500}>
       <Group justify='space-between'>
@@ -96,9 +120,10 @@ function Popup() {
         </ActionIcon>
       </Group>
       <Stack h={"100%"} align='center' justify='center'>
-        <Title c={"orange"} mb={25} mt={95} order={1} ta={"center"}>
+        <Title c={"orange"} mb={15} mt={80} order={1} ta={"center"}>
           UT Course Finder
         </Title>
+        <Text td={"italic"}>{searchCount} searches today...</Text>
         <SearchBar setCourse={setCourse} />
       </Stack>
       <Transition transition={"slide-up"} duration={500} timingFunction='ease' mounted={course !== null}>

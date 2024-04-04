@@ -30,7 +30,6 @@ export default function SearchBar({ setCourse }: { setCourse: React.Dispatch<Rea
   useEffect(() => {
     // fetch and filter courses every time search changes
     chrome.runtime.sendMessage({ action: "CourseSuggestions" }, (response) => {
-      console.log("set course suggestions")
       setCourseSuggestions(getFilteredOptions(response.data));
     })
     // combobox.selectFirstOption();
@@ -66,7 +65,10 @@ export default function SearchBar({ setCourse }: { setCourse: React.Dispatch<Rea
     setSearch(`${courseOption.department} ${courseOption.number}`);
     // setting new course
     chrome.runtime.sendMessage({ action: "CourseInfo", courseID: courseOption.id }, (response) => {
-      if (response.data) setCourse(response.data);
+      if (response.data) {
+        setCourse(response.data);
+          // updating firestore analytics
+      }
       // closes dropdown
       combobox.closeDropdown();
     })
