@@ -3,6 +3,8 @@
 /node_modules
 /crawler
 
+
+
 # hidden files
 .*
 !.gitignore
@@ -12,7 +14,7 @@
 
 # build
 /dist
-.zip
+*.zip
 
 #python
 /venv
